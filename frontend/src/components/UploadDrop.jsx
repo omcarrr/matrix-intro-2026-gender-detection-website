@@ -16,6 +16,7 @@ export default function UploadDrop({ onClose, onLogged }) {
   const [drag, setDrag] = useState(false)
   const [error, setError] = useState(null)
   const frameRef = useRef(null)
+  const cardRef = useRef(null)
   const boxLayerRef = useRef(null)
   const fileNameRef = useRef('')
   // Kept in refs (not state) so reset() always revokes the live object URL and can
@@ -32,7 +33,7 @@ export default function UploadDrop({ onClose, onLogged }) {
   }
 
   const reset = () => {
-    generationRef.current += 1 // drop any pending onload
+    generationRef.current += 1 // drop any pending onload and any in-flight reading
     releaseUrl()
     setUrl(null)
     setImg(null)
@@ -41,6 +42,11 @@ export default function UploadDrop({ onClose, onLogged }) {
     setBusy(false)
     setDrag(false)
     fileNameRef.current = ''
+    // Bring the drop zone back into view instead of leaving the user scrolled past
+    // an empty panel.
+    requestAnimationFrame(() => {
+      cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
   }
 
   const load = (file) => {
@@ -79,6 +85,10 @@ export default function UploadDrop({ onClose, onLogged }) {
 
   const analyze = async () => {
     if (!hasImage) return
+    // Tag this run so a result that lands after Clear is dropped instead of
+    // repopulating a page the user already emptied. The model loads from a CDN
+    // on first use, so the await here is long enough to hit that race.
+    const generation = generationRef.current
     setBusy(true)
     setError(null)
     try {
@@ -97,13 +107,16 @@ export default function UploadDrop({ onClose, onLogged }) {
       } else {
         result = await analyzeImage(img)
       }
+      if (generation !== generationRef.current) return
       setFaces(result)
       await logSession({ mode: 'upload', faceCount: result.length, results: result })
       onLogged?.()
     } catch {
+      if (generation !== generationRef.current) return
       setError('Detection failed. The model loads from a CDN on first run — check your connection.')
     } finally {
-      setBusy(false)
+      // Only clear the spinner for this run: a newer run may own it now.
+      if (generation === generationRef.current) setBusy(false)
     }
   }
 
@@ -140,6 +153,7 @@ export default function UploadDrop({ onClose, onLogged }) {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr]">
       <div
+        ref={cardRef}
         onDragOver={(e) => {
           e.preventDefault()
           setDrag(true)
@@ -190,17 +204,20 @@ export default function UploadDrop({ onClose, onLogged }) {
         />
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          {url ? (
-            <>
-              <button onClick={analyze} disabled={!hasImage || busy} className="btn-solid">
-                {busy && <Loader2 size={15} className="animate-spin" />}
-                {busy ? 'Reading…' : 'Read this photo'}
-              </button>
-              <button onClick={reset} className="btn-line">
-                <RotateCcw size={14} /> Clear
-              </button>
-            </>
-          ) : (
+          {url && (
+            <button onClick={analyze} disabled={!hasImage || busy} className="btn-solid">
+              {busy && <Loader2 size={15} className="animate-spin" />}
+              {busy ? 'Reading…' : 'Read this photo'}
+            </button>
+          )}
+          {/* Stay reachable whenever there is anything to clear, not just while an
+              image is loaded, so the page can never strand the user. */}
+          {(url || faces || busy) && (
+            <button onClick={reset} className="btn-line">
+              <RotateCcw size={14} /> Clear
+            </button>
+          )}
+          {!url && (
             <label htmlFor="upload-file-input" className="btn-solid mt-1 cursor-pointer">
               Choose a file
             </label>

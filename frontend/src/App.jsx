@@ -30,6 +30,14 @@ export default function App() {
     requestAnimationFrame(() => window.scrollTo({ top: 240, behavior: 'smooth' }))
   }
 
+  // Leaving a mode must land the user back on the landing content. Without this the
+  // scroll position from `open` sticks around and the mode picker can sit off-screen,
+  // which reads as a broken page.
+  const close = () => {
+    setMode(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   return (
     <div className={`grain min-h-screen transition-colors duration-500 ${dark ? 'dark' : ''}`}>
       <header className="fixed top-6 right-6 z-50">
@@ -64,8 +72,8 @@ export default function App() {
           </>
         )}
 
-        {mode === 'upload' && <UploadDrop onClose={() => setMode(null)} onLogged={refreshStats} />}
-        {mode === 'camera' && <CameraView onClose={() => setMode(null)} onLogged={refreshStats} />}
+        {mode === 'upload' && <UploadDrop onClose={close} onLogged={refreshStats} />}
+        {mode === 'camera' && <CameraView onClose={close} onLogged={refreshStats} />}
 
         <div style={{ opacity: mode ? 0.4 : 1, transition: 'opacity .5s' }}>
           <StatsStrip stats={stats} />
