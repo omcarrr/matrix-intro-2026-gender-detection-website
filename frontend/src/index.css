@@ -42,6 +42,18 @@ body {
   @apply font-mono text-[11px] uppercase tracking-[0.28em];
 }
 
+/* ---- club logo ---- */
+/* matrix-logo.png is white artwork carrying its own alpha, extracted from a
+   white-on-black JPG. Inverting it for the light theme is what keeps the mark
+   legible instead of a white shape dissolving into the cream background. */
+.club-logo {
+  filter: invert(1);
+}
+
+.dark .club-logo {
+  filter: none;
+}
+
 /* ---- surfaces ---- */
 .card {
   @apply rounded-2xl border backdrop-blur-sm;

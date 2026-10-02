@@ -9,6 +9,7 @@ import ThemeToggle from './components/ThemeToggle'
 import { fetchStats } from './lib/api'
 import { initModels, getStatus, onStatusChange } from './lib/detect'
 import { useDarkMode } from './hooks/useDarkMode'
+import clubLogo from './assets/matrix-logo.png'
 
 export default function App() {
   const [mode, setMode] = useState(null)
@@ -40,8 +41,25 @@ export default function App() {
 
   return (
     <div className={`grain min-h-screen transition-colors duration-500 ${dark ? 'dark' : ''}`}>
-      <header className="fixed top-6 right-6 z-50">
-        <ThemeToggle dark={dark} onToggle={setDark} />
+      {/* Spans the full width now, so it must not swallow clicks meant for the
+          hero underneath — only the logo block and the toggle take pointer events. */}
+      <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex items-start justify-between gap-4 px-6 pt-6 sm:px-10">
+        <div className="pointer-events-auto flex items-center gap-3">
+          <img
+            src={clubLogo}
+            alt="MATRIX club"
+            width={547}
+            height={320}
+            className="club-logo h-9 w-auto shrink-0 select-none sm:h-10"
+          />
+          <span className="mono-label leading-[1.6] text-subtle">
+            represented by
+            <span className="block text-primary">matrix club</span>
+          </span>
+        </div>
+        <div className="pointer-events-auto">
+          <ThemeToggle dark={dark} onToggle={setDark} />
+        </div>
       </header>
 
       <Hero />
