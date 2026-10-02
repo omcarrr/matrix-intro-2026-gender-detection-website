@@ -62,18 +62,17 @@ router.post('/', (req, res) => {
 /** GET /api/sessions?limit=20 */
 router.get('/', (req, res) => {
   try {
-    const limit = Math.min(100, Math.max(1, Number(req.query.limit) ?? 20))
-    console.log('[DEBUG] limit param:', req.query.limit, '->', limit)
-    
-    const stmt = db.prepare(
-      `SELECT id, mode, face_count, primary_gender, primary_confidence, average_age, results_json, created_at
-       FROM sessions ORDER BY created_at DESC LIMIT ?`
-    )
-    console.log('[DEBUG] prepared statement')
-    
-    const rows = stmt.all(limit)
-    console.log('[DEBUG] rows:', rows)
-    
+    const rawLimit = req.query.limit
+    const limit = Number.isInteger(Number(rawLimit)) ? Number(rawLimit) : 20
+    const safeLimit = Math.min(100, Math.max(1, limit))
+
+    const rows = db
+      .prepare(
+        `SELECT id, mode, face_count, primary_gender, primary_confidence, average_age, results_json, created_at
+         FROM sessions ORDER BY created_at DESC LIMIT ?`
+      )
+      .all(safeLimit)
+
     const sessions = rows.map((r) => ({
       ...r,
       results: JSON.parse(r.results_json),
@@ -85,7 +84,6 @@ router.get('/', (req, res) => {
       AVG(primary_confidence) as averageConfidence
     FROM sessions`).get()
 
-    console.log('[DEBUG] totals:', totals)
     res.json({
       sessions,
       stats: {
@@ -95,7 +93,7 @@ router.get('/', (req, res) => {
       },
     })
   } catch (err) {
-    console.error('[GET /api/sessions] ERROR:', err)
+    console.error('[GET /api/sessions]', err)
     res.status(500).json({ error: 'server error' })
   }
 })
