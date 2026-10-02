@@ -1,7 +1,11 @@
 import Database from 'better-sqlite3'
 import { resolve } from 'path'
 
-const dbPath = resolve(process.cwd(), 'data.db')
+// DATA_DIR lets a host point the SQLite file at a mounted volume. Without it the
+// file lands in the process working directory, which on most PaaS filesystems is
+// ephemeral and gets wiped on every redeploy.
+const dataDir = process.env.DATA_DIR ?? process.cwd()
+const dbPath = resolve(dataDir, 'data.db')
 const db = new Database(dbPath)
 
 db.exec(`

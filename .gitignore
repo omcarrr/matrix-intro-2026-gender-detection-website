@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.vite/
+
+# Local database — regenerated on first boot
+*.db
+*.db-journal
+
+# Reference photos used for the hardcoded demo presets. These are personal club
+# photos and must never be committed or deployed.
+temp/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
