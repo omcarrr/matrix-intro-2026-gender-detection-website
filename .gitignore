@@ -13,10 +13,14 @@ dist/
 # photos and must never be committed or deployed.
 temp/
 
-# Environment
+# Environment — keep real secrets out, but the checked-in defaults are safe to
+# share (they only ever hold a localhost URL or a public endpoint).
 .env
+.env.local
+.env.*.local
 .env.*
 !.env.example
+!.env.development
 
 # Editor / OS
 .DS_Store
