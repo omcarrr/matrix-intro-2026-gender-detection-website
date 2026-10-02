@@ -42,6 +42,12 @@ export const PRESETS = [
     ],
   },
   {
+    id: 'farhan-100-trans',
+    label: 'farhan 100 trans',
+    hash: '1011000010101001100010001001000001001100110011101000111010110110',
+    readings: [{ gender: 'transgender', confidence: 1, alternates: [] }],
+  },
+  {
     id: 'matrix-1',
     label: 'MATRIX Club Orientation',
     hash: '0011001001111010001100100011001000100111001001010100010100001110',
@@ -65,8 +71,12 @@ export const PRESETS = [
  * Second chance if the perceptual hash is inconclusive (odd crops, heavy
  * recompression): fall back to keywords in the file name. All three MATRIX
  * photos share one reading, so any of them is an equally valid match.
+ *
+ * Order matters — `find` returns the first hit, so the specific "farhan 100
+ * trans" pattern must stay ahead of the generic "farhan" one.
  */
 const NAME_HINTS = [
+  { id: 'farhan-100-trans', test: /farhan\s*100\s*trans/i },
   { id: 'mota-motherboard', test: /mota|motherboard/i },
   { id: 'farhan', test: /farhan/i },
   { id: 'matrix-1', test: /matrix/i },
