@@ -42,17 +42,19 @@ export async function initModels() {
   return loadPromise
 }
 
-/** Map face-api results into a small, serialisable shape. */
-function normalise(results) {
+/** Map face-api results into a small, serialisable shape.
+ *  `scale` is the factor the frame was shrunk by before detection, so boxes can be
+ *  mapped back into the original image/video pixel space the overlay draws in. */
+function normalise(results, scale = 1) {
   return results.slice(0, 50).map((r) => ({
     gender: r.gender === 'male' ? 'male' : 'female',
     confidence: Math.max(0, Math.min(1, r.genderProbability ?? 0)),
     age: Math.round(r.age ?? 0),
     box: {
-      x: r.detection.box.x,
-      y: r.detection.box.y,
-      width: r.detection.box.width,
-      height: r.detection.box.height,
+      x: r.detection.box.x / scale,
+      y: r.detection.box.y / scale,
+      width: r.detection.box.width / scale,
+      height: r.detection.box.height / scale,
     },
   }))
 }
@@ -60,17 +62,21 @@ function normalise(results) {
 /** Human sentence for the summary bar. */
 export function describe(faces) {
   if (!faces.length) return 'No person detected'
+  const alts = (f) =>
+    f.alternates?.length
+      ? ` (${f.alternates.map((a) => `${Math.round(a.confidence * 100)}% ${a.gender}`).join(', ')})`
+      : ''
   if (faces.length === 1) {
     const f = faces[0]
-    return `1 person · ${Math.round(f.confidence * 100)}% likely a ${f.gender}`
+    return `1 person · ${Math.round(f.confidence * 100)}% likely a ${f.gender}${alts(f)}`
   }
   const top = [...faces].sort((a, b) => b.confidence - a.confidence)[0]
   return `${faces.length} people detected · strongest read ${Math.round(
     top.confidence * 100,
-  )}% likely a ${top.gender}`
+  )}% likely a ${top.gender}${alts(top)}`
 }
 
-async function detectCanvas(canvas) {
+async function detectCanvas(canvas, scale = 1) {
   await initModels()
   const opts = new faceapi.SsdMobilenetv1Options({
     minConfidence: 0.5,
@@ -80,12 +86,13 @@ async function detectCanvas(canvas) {
     .detectAllFaces(canvas, opts)
     .withFaceLandmarks()
     .withAgeAndGender()
-  return normalise(results)
+  return normalise(results, scale)
 }
 
 const MAX_EDGE = 640
 
 function toCanvas(source, w, h) {
+  if (!w || !h) return null
   const scale = Math.min(1, MAX_EDGE / Math.max(w, h))
   const canvas = document.createElement('canvas')
   canvas.width = Math.round(w * scale)
@@ -95,15 +102,18 @@ function toCanvas(source, w, h) {
   return { canvas, scale }
 }
 
-/** Analyse an <img> / File / blob URL. */
+/** Analyse an <img> / File / blob URL. Boxes come back in natural image pixels. */
 export async function analyzeImage(img) {
-  const { canvas } = toCanvas(img, img.naturalWidth, img.naturalHeight)
-  return detectCanvas(canvas)
+  const made = toCanvas(img, img.naturalWidth, img.naturalHeight)
+  if (!made) throw new Error('image has no pixels')
+  return detectCanvas(made.canvas, made.scale)
 }
 
-/** Analyse a single frame from a <video>. Throttled by the caller. */
+/** Analyse a single frame from a <video>. Throttled by the caller.
+ *  Boxes come back in `videoWidth`/`videoHeight` pixels. */
 export async function analyzeVideoFrame(video) {
-  if (!video.videoWidth) return []
-  const { canvas } = toCanvas(video, video.videoWidth, video.videoHeight)
-  return detectCanvas(canvas)
+  if (!video.videoWidth || !video.videoHeight) return []
+  const made = toCanvas(video, video.videoWidth, video.videoHeight)
+  if (!made) return []
+  return detectCanvas(made.canvas, made.scale)
 }

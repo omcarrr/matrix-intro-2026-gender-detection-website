@@ -1,17 +1,14 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-
-const TONE = {
-  female: { fill: 'var(--accent-warm)', text: 'text-[var(--accent-warm)]' },
-  male: { fill: 'var(--accent-cool)', text: 'text-[var(--accent-cool)]' },
-}
+import { toneFor } from '../lib/labels'
 
 export default function FaceCard({ face, index }) {
   const root = useRef(null)
   const bar = useRef(null)
   const num = useRef(null)
   const pct = Math.round(face.confidence * 100)
-  const tone = TONE[face.gender]
+  const tone = toneFor(face.gender)
+  const hasAge = Number.isFinite(face.age) && face.age > 0
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -42,14 +39,24 @@ export default function FaceCard({ face, index }) {
   return (
     <div ref={root} className="card card-lift p-6">
       <div className="flex items-baseline justify-between">
-        <span className="mono-label text-subtle">face {String(index + 1).padStart(2, '0')}</span>
-        <span className="mono-label text-subtle">~{face.age} yrs</span>
+        <span className="mono-label text-subtle">
+          {face.preset ? 'preset reading' : `face ${String(index + 1).padStart(2, '0')}`}
+        </span>
+        {hasAge && <span className="mono-label text-subtle">~{face.age} yrs</span>}
       </div>
 
       <p className="serif mt-5 text-2xl tracking-tight">
         <span className={tone.text}>{pct}%</span>{' '}
         <span className="text-secondary">likely a {face.gender}</span>
       </p>
+
+      {face.alternates?.length > 0 && (
+        <p className="mono-label mt-3 text-subtle">
+          {face.alternates
+            .map((a) => `${Math.round(a.confidence * 100)}% ${a.gender}`)
+            .join(' · ')}
+        </p>
+      )}
 
       <div className="bar-track mt-6">
         <div

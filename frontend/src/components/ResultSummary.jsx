@@ -3,6 +3,7 @@ import { gsap } from 'gsap'
 
 export default function ResultSummary({ faces, sentence }) {
   const ref = useRef(null)
+  const isPreset = faces?.some((f) => f.preset)
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -28,9 +29,11 @@ export default function ResultSummary({ faces, sentence }) {
       </p>
       <div className="hairline mt-6" data-rule />
       <p className="mt-4 text-xs text-muted">
-        {faces.length
-          ? 'Estimated locally in your browser. Treat it as an approximation, never a fact.'
-          : 'Point the camera at a face, or upload an image to begin.'}
+        {isPreset
+          ? 'Fixed demo value for a known photo. Not a model estimate — do not read it as one.'
+          : faces.length
+            ? 'Estimated locally in your browser. Treat it as an approximation, never a fact.'
+            : 'Point the camera at a face, or upload an image to begin.'}
       </p>
     </div>
   )

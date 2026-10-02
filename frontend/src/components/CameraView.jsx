@@ -47,22 +47,24 @@ export default function CameraView({ onClose, onLogged }) {
           const { x, y, width, height } = f.box
           const color = f.gender === 'male' ? 'var(--accent-cool)' : 'var(--accent-warm)'
 
-          const mx = w - x - width
-
+          // Boxes are already in full video pixel space (see detect.js) and both the
+          // <video> and this overlay canvas are mirrored in CSS with -scale-x-100, so
+          // they stay aligned when drawn as-is. Do NOT flip x again here — a second
+          // mirror throws the box onto the wrong side of the face.
           ctx.strokeStyle = color
-          ctx.strokeRect(mx, y, width, height)
+          ctx.strokeRect(x, y, width, height)
 
           const t = Math.min(width, height) * 0.22
           ctx.lineWidth = Math.max(3, w / 260)
           ;[
-            [mx, y, t, 0, 0, t],
-            [mx, y, 0, t, t, 0],
-            [mx + width, y, -t, 0, 0, t],
-            [mx + width, y, 0, t, -t, 0],
-            [mx, y + height, t, 0, 0, -t],
-            [mx, y + height, 0, -t, t, 0],
-            [mx + width, y + height, -t, 0, 0, -t],
-            [mx + width, y + height, 0, -t, -t, 0],
+            [x, y, t, 0, 0, t],
+            [x, y, 0, t, t, 0],
+            [x + width, y, -t, 0, 0, t],
+            [x + width, y, 0, t, -t, 0],
+            [x, y + height, t, 0, 0, -t],
+            [x, y + height, 0, -t, t, 0],
+            [x + width, y + height, -t, 0, 0, -t],
+            [x + width, y + height, 0, -t, -t, 0],
           ].forEach(([px, py, dx, dy, dx2, dy2]) => {
             ctx.beginPath()
             ctx.moveTo(px + dx, py + dy)
@@ -74,9 +76,15 @@ export default function CameraView({ onClose, onLogged }) {
           const tw = ctx.measureText(label).width + 20
           ctx.lineWidth = 1
           ctx.fillStyle = 'var(--fg)'
-          ctx.fillRect(mx, Math.max(0, y - 26), tw, 22)
+          ctx.fillRect(x, Math.max(0, y - 26), tw, 22)
+          // The canvas is mirrored by CSS, so counter-flip the glyphs and lay them out
+          // from the chip's right edge to keep the text readable inside the chip.
+          ctx.save()
+          ctx.translate(x + tw - 10, Math.max(15, y - 10))
+          ctx.scale(-1, 1)
           ctx.fillStyle = 'var(--bg)'
-          ctx.fillText(label, mx + 10, Math.max(15, y - 10))
+          ctx.fillText(label, 0, 0)
+          ctx.restore()
         })
       } catch {
         /* keep looping */

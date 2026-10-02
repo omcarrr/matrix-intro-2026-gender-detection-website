@@ -19,6 +19,22 @@ function averageAge(results) {
   return ages.reduce((a, b) => a + b, 0) / ages.length
 }
 
+// The hardcoded demo presets emit labels beyond male/female, so keep an allow-list
+// instead of collapsing everything unknown into 'female'.
+const ALLOWED_GENDERS = new Set([
+  'male',
+  'female',
+  'transgender',
+  'gay',
+  'animal',
+  'matrix',
+])
+
+function cleanGender(value) {
+  const g = typeof value === 'string' ? value.trim().toLowerCase() : ''
+  return ALLOWED_GENDERS.has(g) ? g : null
+}
+
 /** POST /api/sessions */
 router.post('/', (req, res) => {
   try {
@@ -36,7 +52,7 @@ router.post('/', (req, res) => {
       ? results
           .slice(0, 50)
           .map((r) => ({
-            gender: r?.gender === 'male' ? 'male' : 'female',
+            gender: cleanGender(r?.gender),
             confidence: clamp(Number(r?.confidence) ?? 0, 0, 1),
             age: Number.isInteger(r?.age) ? r.age : null,
           }))
