@@ -8,7 +8,7 @@ import ResultSummary from './ResultSummary'
 
 const INTERVAL_MS = 150
 
-export default function CameraView({ onClose }) {
+export default function CameraView({ onClose, onLogged }) {
   const { videoRef, start, stop, error, ready } = useCamera()
   const canvasRef = useRef(null)
   const timerRef = useRef(0)
@@ -45,16 +45,13 @@ export default function CameraView({ onClose }) {
 
         result.forEach((f) => {
           const { x, y, width, height } = f.box
-          const color = f.gender === 'male' ? '#4d7c5a' : '#c2410c'
+          const color = f.gender === 'male' ? 'var(--accent-cool)' : 'var(--accent-warm)'
 
-          // The video is mirrored with CSS (-scale-x-100) and canvas is also mirrored.
-          // Detection runs on raw frames (non-mirrored), so we must flip X for drawing.
           const mx = w - x - width
 
           ctx.strokeStyle = color
           ctx.strokeRect(mx, y, width, height)
 
-          // corner ticks for a precise, instrument-like read (also mirrored)
           const t = Math.min(width, height) * 0.22
           ctx.lineWidth = Math.max(3, w / 260)
           ;[
@@ -76,9 +73,9 @@ export default function CameraView({ onClose }) {
           const label = `${Math.round(f.confidence * 100)}% ${f.gender}`
           const tw = ctx.measureText(label).width + 20
           ctx.lineWidth = 1
-          ctx.fillStyle = '#17161a'
+          ctx.fillStyle = 'var(--fg)'
           ctx.fillRect(mx, Math.max(0, y - 26), tw, 22)
-          ctx.fillStyle = '#faf8f5'
+          ctx.fillStyle = 'var(--bg)'
           ctx.fillText(label, mx + 10, Math.max(15, y - 10))
         })
       } catch {
@@ -96,13 +93,19 @@ export default function CameraView({ onClose }) {
   }, [ready, loop])
 
   const tickRef = useRef(0)
+  const loggedRef = useRef(false)
   useEffect(() => {
-    if (!faces.length) return
-    tickRef.current += 1
-    if (tickRef.current % 60 === 1) {
-      logSession({ mode: 'camera', faceCount: faces.length, results: faces })
+    if (!faces.length) {
+      loggedRef.current = false
+      return
     }
-  }, [faces])
+    tickRef.current += 1
+    if (tickRef.current % 60 === 1 && !loggedRef.current) {
+      logSession({ mode: 'camera', faceCount: faces.length, results: faces })
+      onLogged?.()
+      loggedRef.current = true
+    }
+  }, [faces, onLogged])
 
   useEffect(() => {
     if (!ready) return
@@ -120,8 +123,8 @@ export default function CameraView({ onClose }) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-      <div className="card card-lift bg-white p-3">
-        <div className="relative overflow-hidden rounded-xl bg-ink">
+      <div className="card card-lift bg-surface p-3">
+        <div className="relative overflow-hidden rounded-xl bg-[var(--fg)]">
           <video ref={videoRef} playsInline muted className="block w-full -scale-x-100" />
           <canvas
             ref={canvasRef}
@@ -129,25 +132,25 @@ export default function CameraView({ onClose }) {
           />
           <div
             data-scanner
-            className="pointer-events-none absolute inset-x-0 h-28 bg-gradient-to-b from-transparent via-clay/10 to-transparent"
+            className="pointer-events-none absolute inset-x-0 h-28 bg-gradient-to-b from-transparent via-[var(--accent-warm)]/10 to-transparent"
           />
 
           {(loading || (error && !ready)) && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink/80 text-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[var(--fg)]/80 text-center">
               {loading && !error ? (
                 <>
-                  <Loader2 size={24} className="animate-spin text-bone" />
-                  <p className="mono-label text-bone/50">warming the model</p>
+                  <Loader2 size={24} className="animate-spin text-[var(--bg)]" />
+                  <p className="mono-label text-[var(--bg)]/50">warming the model</p>
                 </>
               ) : (
-                <p className="max-w-xs px-6 text-sm text-bone/70">{error}</p>
+                <p className="max-w-xs px-6 text-sm text-[var(--bg)]/70">{error}</p>
               )}
             </div>
           )}
         </div>
 
         <div className="flex items-center justify-between px-3 py-3">
-          <span className="mono-label text-ink/40">
+          <span className="mono-label text-muted">
             {faces.length} face{faces.length === 1 ? '' : 's'} tracked
           </span>
           <button onClick={onClose} className="btn-line">
@@ -158,8 +161,8 @@ export default function CameraView({ onClose }) {
 
       <div className="space-y-4">
         <ResultSummary faces={faces} sentence={describe(faces)} />
-        <div className="card p-6 text-sm leading-relaxed text-ink/50">
-          The read refreshes roughly every <span className="text-ink">150&nbsp;ms</span> and
+        <div className="card p-6 text-sm leading-relaxed text-secondary">
+          The read refreshes roughly every <span className="text-primary">150&nbsp;ms</span> and
           runs entirely on your device. Nothing is recorded or sent.
         </div>
         <button onClick={onClose} className="btn-line w-full justify-center">

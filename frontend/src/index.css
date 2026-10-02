@@ -6,8 +6,32 @@ html {
   scroll-behavior: smooth;
 }
 
+:root {
+  --bg: #faf8f5;
+  --bg-elevated: #ffffff;
+  --fg: #17161a;
+  --fg-muted: #6a6770;
+  --border: #17161a;
+  --accent-warm: #c2410c;
+  --accent-cool: #4d7c5a;
+}
+
+.dark {
+  --bg: #17161a;
+  --bg-elevated: #1e1d22;
+  --fg: #faf8f5;
+  --fg-muted: #a8a5b0;
+  --border: #faf8f5;
+  --accent-warm: #f97316;
+  --accent-cool: #65a30d;
+}
+
 body {
-  @apply bg-bone font-sans text-ink antialiased;
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 /* ---- type ---- */
@@ -20,15 +44,22 @@ body {
 
 /* ---- surfaces ---- */
 .card {
-  @apply rounded-2xl border border-ink/10 bg-white/70 backdrop-blur-sm;
+  @apply rounded-2xl border backdrop-blur-sm;
+  background-color: color-mix(in srgb, var(--bg-elevated) 70%, transparent);
+  border-color: color-mix(in srgb, var(--border) 10%, transparent);
 }
 .card-lift {
   box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
-    0 24px 60px -32px rgba(23, 22, 26, 0.45);
+    0 1px 0 0 color-mix(in srgb, var(--fg) 7%, transparent) inset,
+    0 24px 60px -32px color-mix(in srgb, var(--fg) 45%, transparent);
+}
+.dark .card-lift {
+  box-shadow:
+    0 1px 0 0 color-mix(in srgb, var(--fg) 5%, transparent) inset,
+    0 24px 60px -32px color-mix(in srgb, #000 60%, transparent);
 }
 .hairline {
-  @apply border-t border-ink/10;
+  border-top: 1px solid color-mix(in srgb, var(--border) 10%, transparent);
 }
 
 /* ---- buttons ---- */
@@ -36,24 +67,37 @@ body {
   @apply inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300;
 }
 .btn-solid {
-  @apply btn bg-ink text-bone hover:bg-ink/85 active:scale-[0.98];
+  @apply btn;
+  background-color: var(--fg);
+  color: var(--bg);
+}
+.btn-solid:hover {
+  opacity: 0.85;
+}
+.btn-solid:active {
+  transform: scale(0.98);
 }
 .btn-line {
-  @apply btn border border-ink/20 text-ink hover:border-ink/60 hover:bg-ink hover:text-bone active:scale-[0.98];
+  @apply btn;
+  border: 1px solid color-mix(in srgb, var(--border) 20%, transparent);
+  color: var(--fg);
+}
+.btn-line:hover {
+  background-color: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+.btn-line:active {
+  transform: scale(0.98);
 }
 
-/* ---- accents ---- */
-.accent-clay {
-  color: #c2410c;
-}
-.accent-moss {
-  color: #4d7c5a;
-}
-
+/* ---- bar track ---- */
 .bar-track {
-  @apply h-[3px] w-full overflow-hidden rounded-full bg-ink/10;
+  @apply h-[3px] w-full overflow-hidden rounded-full;
+  background-color: color-mix(in srgb, var(--border) 10%, transparent);
 }
 
+/* ---- grain ---- */
 .grain::before {
   content: '';
   position: fixed;
@@ -63,11 +107,31 @@ body {
   z-index: 60;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+.dark .grain::before {
+  opacity: 0.06;
+}
 
+/* ---- ruled lines ---- */
 .ruled {
-  background-image: linear-gradient(ink 1px, transparent 1px);
+  background-image: linear-gradient(color-mix(in srgb, var(--border) 5%, transparent) 1px, transparent 1px);
   background-size: 100% 3.25rem;
-  opacity: 0.045;
+  opacity: 0.5;
+}
+
+/* ---- scrollbar ---- */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #3a3840;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4a4850;
 }
 
 @media (prefers-reduced-motion: reduce) {

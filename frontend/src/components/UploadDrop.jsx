@@ -6,7 +6,7 @@ import { logSession } from '../lib/api'
 import FaceCard from './FaceCard'
 import ResultSummary from './ResultSummary'
 
-export default function UploadDrop({ onClose }) {
+export default function UploadDrop({ onClose, onLogged }) {
   const [url, setUrl] = useState(null)
   const [img, setImg] = useState(null)
   const [faces, setFaces] = useState(null)
@@ -43,7 +43,8 @@ export default function UploadDrop({ onClose }) {
     try {
       const result = await analyzeImage(img)
       setFaces(result)
-      logSession({ mode: 'upload', faceCount: result.length, results: result })
+      await logSession({ mode: 'upload', faceCount: result.length, results: result })
+      onLogged?.()
     } catch {
       setError('Detection failed. The model loads from a CDN on first run — check your connection.')
     } finally {
@@ -70,11 +71,11 @@ export default function UploadDrop({ onClose }) {
       el.style.cssText = `position:absolute;left:${(f.box.x / W) * 100}%;top:${(
         f.box.y / H
       ) * 100}%;width:${(f.box.width / W) * 100}%;height:${(f.box.height / H) * 100}%;border:1.5px solid ${
-        f.gender === 'male' ? '#4d7c5a' : '#c2410c'
-      };border-radius:10px;box-shadow:0 0 0 4px rgba(255,255,255,.55);`
+        f.gender === 'male' ? 'var(--accent-cool)' : 'var(--accent-warm)'
+      };border-radius:10px;box-shadow:0 0 0 4px color-mix(in srgb, var(--fg) 15%, transparent);`
       const chip = document.createElement('span')
       chip.textContent = `${Math.round(f.confidence * 100)}% ${f.gender}`
-      chip.style.cssText = `position:absolute;top:-24px;left:-1px;background:#17161a;color:#faf8f5;font:500 10px 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;white-space:nowrap;`
+      chip.style.cssText = `position:absolute;top:-24px;left:-1px;background:var(--fg);color:var(--bg);font:500 10px 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;white-space:nowrap;`
       el.appendChild(chip)
       layer.appendChild(el)
     })
@@ -94,16 +95,16 @@ export default function UploadDrop({ onClose }) {
           load(e.dataTransfer.files?.[0])
         }}
         className={`card card-lift flex min-h-[24rem] flex-col items-center justify-center gap-5 p-10 text-center transition-colors duration-300 ${
-          drag ? 'bg-white ring-1 ring-ink/20' : 'bg-white/70'
+          drag ? 'bg-surface ring-1 border-strong' : 'bg-surface/70'
         }`}
       >
         {!url ? (
           <>
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-clay/10 text-clay">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-warm)]/10 text-[var(--accent-warm)]">
               <Upload size={20} strokeWidth={1.5} />
             </span>
-            <p className="serif text-3xl tracking-tight">Drop an image here</p>
-            <p className="max-w-sm text-sm leading-relaxed text-ink/50">
+            <p className="serif text-3xl tracking-tight text-primary">Drop an image here</p>
+            <p className="max-w-sm text-sm leading-relaxed text-secondary">
               It never leaves your browser — the file is read locally and only a small
               summary is sent to the backend.
             </p>
@@ -124,7 +125,7 @@ export default function UploadDrop({ onClose }) {
           </div>
         )}
 
-        {error && <p className="text-sm text-clay">{error}</p>}
+        {error && <p className="text-sm text-[var(--accent-warm)]">{error}</p>}
 
         {url && (
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -145,7 +146,7 @@ export default function UploadDrop({ onClose }) {
           <FaceCard key={i} face={f} index={i} />
         ))}
         {!faces && (
-          <div className="card p-6 text-sm leading-relaxed text-ink/45">
+          <div className="card p-6 text-sm leading-relaxed text-secondary">
             Once a photo is read, each detected face appears here with a confidence
             bar and its estimate.
           </div>

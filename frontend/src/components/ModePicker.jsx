@@ -9,7 +9,7 @@ const MODES = [
     index: '01',
     title: 'Upload a photograph',
     copy: 'Drop in any image. Each face is boxed, scored, and summarised.',
-    accent: 'clay',
+    accent: 'warm',
   },
   {
     id: 'camera',
@@ -17,7 +17,7 @@ const MODES = [
     index: '02',
     title: 'Open the live camera',
     copy: 'A continuous read that refreshes roughly six times a second.',
-    accent: 'moss',
+    accent: 'cool',
   },
 ]
 
@@ -42,12 +42,13 @@ export default function ModePicker({ onSelect }) {
   const leave = (e) =>
     gsap.to(e.currentTarget, { y: 0, duration: 0.6, ease: 'power3.out', overwrite: 'auto' })
 
-  const accentText = (a) => (a === 'clay' ? 'text-clay' : 'text-moss')
-  const accentBg = (a) => (a === 'clay' ? 'bg-clay/10' : 'bg-moss/10')
+  const accentVar = (a) => (a === 'warm' ? 'var(--accent-warm)' : 'var(--accent-cool)')
+  const accentBg = (a) => (a === 'warm' ? 'bg-[var(--accent-warm)]/10' : 'bg-[var(--accent-cool)]/10')
+  const accentText = (a) => (a === 'warm' ? 'text-[var(--accent-warm)]' : 'text-[var(--accent-cool)]')
 
   return (
     <section ref={root} className="mx-auto max-w-5xl px-6 pb-24">
-      <div className="grid gap-px overflow-hidden rounded-2xl border border-ink/10 bg-ink/10 sm:grid-cols-2">
+      <div className="grid gap-px overflow-hidden rounded-2xl border-default bg-[color-mix(in_srgb,_var(--border)_10%,_transparent)] sm:grid-cols-2">
         {MODES.map(({ id, icon: Icon, index, title, copy, accent }) => (
           <button
             key={id}
@@ -55,7 +56,7 @@ export default function ModePicker({ onSelect }) {
             onMouseEnter={enter}
             onMouseLeave={leave}
             onClick={() => onSelect(id)}
-            className="group card-lift relative bg-bone p-10 text-left transition-colors duration-500 hover:bg-white"
+            className="group card-lift relative bg-base p-10 text-left transition-colors duration-500 hover:bg-surface"
           >
             <div className="flex items-start justify-between">
               <span
@@ -65,11 +66,11 @@ export default function ModePicker({ onSelect }) {
               >
                 <Icon size={20} strokeWidth={1.5} />
               </span>
-              <span className="mono-label text-ink/25">{index}</span>
+              <span className="mono-label text-subtle">{index}</span>
             </div>
 
-            <h2 className="serif mt-10 text-3xl tracking-tight text-ink">{title}</h2>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink/55">{copy}</p>
+            <h2 className="serif mt-10 text-3xl tracking-tight text-primary">{title}</h2>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-secondary">{copy}</p>
 
             <span
               className={`mono-label mt-10 inline-flex items-center gap-2 ${accentText(accent)}`}
@@ -80,8 +81,7 @@ export default function ModePicker({ onSelect }) {
               </span>
             </span>
 
-            {/* sweeping hairline on hover */}
-            <span className="pointer-events-none absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-ink/25 transition-transform duration-700 group-hover:scale-x-100" />
+            <span className="pointer-events-none absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 border-default transition-transform duration-700 group-hover:scale-x-100" />
           </button>
         ))}
       </div>

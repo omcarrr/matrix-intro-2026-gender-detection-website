@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 
 const TONE = {
-  female: { fill: '#c2410c', text: 'text-clay' },
-  male: { fill: '#4d7c5a', text: 'text-moss' },
+  female: { fill: 'var(--accent-warm)', text: 'text-[var(--accent-warm)]' },
+  male: { fill: 'var(--accent-cool)', text: 'text-[var(--accent-cool)]' },
 }
 
 export default function FaceCard({ face, index }) {
@@ -42,13 +42,13 @@ export default function FaceCard({ face, index }) {
   return (
     <div ref={root} className="card card-lift p-6">
       <div className="flex items-baseline justify-between">
-        <span className="mono-label text-ink/30">face {String(index + 1).padStart(2, '0')}</span>
-        <span className="mono-label text-ink/30">~{face.age} yrs</span>
+        <span className="mono-label text-subtle">face {String(index + 1).padStart(2, '0')}</span>
+        <span className="mono-label text-subtle">~{face.age} yrs</span>
       </div>
 
       <p className="serif mt-5 text-2xl tracking-tight">
         <span className={tone.text}>{pct}%</span>{' '}
-        <span className="text-ink/50">likely a {face.gender}</span>
+        <span className="text-secondary">likely a {face.gender}</span>
       </p>
 
       <div className="bar-track mt-6">
@@ -59,7 +59,7 @@ export default function FaceCard({ face, index }) {
         />
       </div>
 
-      <p ref={num} className="mono-label mt-4 text-ink/25">
+      <p ref={num} className="mono-label mt-4 text-subtle">
         0%
       </p>
     </div>

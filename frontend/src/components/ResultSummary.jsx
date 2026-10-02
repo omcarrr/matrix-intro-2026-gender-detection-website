@@ -21,13 +21,13 @@ export default function ResultSummary({ faces, sentence }) {
   }, [sentence])
 
   return (
-    <div ref={ref} className="card card-lift overflow-hidden bg-white px-8 py-7">
-      <span className="mono-label text-ink/30">reading</span>
-      <p className="serif mt-4 text-3xl leading-tight tracking-tight text-ink sm:text-4xl">
+    <div ref={ref} className="card card-lift overflow-hidden bg-surface px-8 py-7">
+      <span className="mono-label text-subtle">reading</span>
+      <p className="serif mt-4 text-3xl leading-tight tracking-tight text-primary sm:text-4xl">
         {sentence}
       </p>
       <div className="hairline mt-6" data-rule />
-      <p className="mt-4 text-xs text-ink/40">
+      <p className="mt-4 text-xs text-muted">
         {faces.length
           ? 'Estimated locally in your browser. Treat it as an approximation, never a fact.'
           : 'Point the camera at a face, or upload an image to begin.'}
