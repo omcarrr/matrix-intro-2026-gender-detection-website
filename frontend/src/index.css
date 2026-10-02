@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-bone font-sans text-ink antialiased;
+}
+
+/* ---- type ---- */
+.serif {
+  font-family: 'Instrument Serif', Georgia, serif;
+}
+.mono-label {
+  @apply font-mono text-[11px] uppercase tracking-[0.28em];
+}
+
+/* ---- surfaces ---- */
+.card {
+  @apply rounded-2xl border border-ink/10 bg-white/70 backdrop-blur-sm;
+}
+.card-lift {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
+    0 24px 60px -32px rgba(23, 22, 26, 0.45);
+}
+.hairline {
+  @apply border-t border-ink/10;
+}
+
+/* ---- buttons ---- */
+.btn {
+  @apply inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300;
+}
+.btn-solid {
+  @apply btn bg-ink text-bone hover:bg-ink/85 active:scale-[0.98];
+}
+.btn-line {
+  @apply btn border border-ink/20 text-ink hover:border-ink/60 hover:bg-ink hover:text-bone active:scale-[0.98];
+}
+
+/* ---- accents ---- */
+.accent-clay {
+  color: #c2410c;
+}
+.accent-moss {
+  color: #4d7c5a;
+}
+
+.bar-track {
+  @apply h-[3px] w-full overflow-hidden rounded-full bg-ink/10;
+}
+
+.grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  z-index: 60;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.ruled {
+  background-image: linear-gradient(ink 1px, transparent 1px);
+  background-size: 100% 3.25rem;
+  opacity: 0.045;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+  }
+}
