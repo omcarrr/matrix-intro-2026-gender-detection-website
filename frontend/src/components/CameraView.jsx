@@ -47,21 +47,25 @@ export default function CameraView({ onClose }) {
           const { x, y, width, height } = f.box
           const color = f.gender === 'male' ? '#4d7c5a' : '#c2410c'
 
-          ctx.strokeStyle = color
-          ctx.strokeRect(x, y, width, height)
+          // The video is mirrored with CSS (-scale-x-100) and canvas is also mirrored.
+          // Detection runs on raw frames (non-mirrored), so we must flip X for drawing.
+          const mx = w - x - width
 
-          // corner ticks for a precise, instrument-like read
+          ctx.strokeStyle = color
+          ctx.strokeRect(mx, y, width, height)
+
+          // corner ticks for a precise, instrument-like read (also mirrored)
           const t = Math.min(width, height) * 0.22
           ctx.lineWidth = Math.max(3, w / 260)
           ;[
-            [x, y, t, 0, 0, t],
-            [x, y, 0, t, t, 0],
-            [x + width, y, -t, 0, 0, t],
-            [x + width, y, 0, t, -t, 0],
-            [x, y + height, t, 0, 0, -t],
-            [x, y + height, 0, -t, t, 0],
-            [x + width, y + height, -t, 0, 0, -t],
-            [x + width, y + height, 0, -t, -t, 0],
+            [mx, y, t, 0, 0, t],
+            [mx, y, 0, t, t, 0],
+            [mx + width, y, -t, 0, 0, t],
+            [mx + width, y, 0, t, -t, 0],
+            [mx, y + height, t, 0, 0, -t],
+            [mx, y + height, 0, -t, t, 0],
+            [mx + width, y + height, -t, 0, 0, -t],
+            [mx + width, y + height, 0, -t, -t, 0],
           ].forEach(([px, py, dx, dy, dx2, dy2]) => {
             ctx.beginPath()
             ctx.moveTo(px + dx, py + dy)
@@ -73,9 +77,9 @@ export default function CameraView({ onClose }) {
           const tw = ctx.measureText(label).width + 20
           ctx.lineWidth = 1
           ctx.fillStyle = '#17161a'
-          ctx.fillRect(x, Math.max(0, y - 26), tw, 22)
+          ctx.fillRect(mx, Math.max(0, y - 26), tw, 22)
           ctx.fillStyle = '#faf8f5'
-          ctx.fillText(label, x + 10, Math.max(15, y - 10))
+          ctx.fillText(label, mx + 10, Math.max(15, y - 10))
         })
       } catch {
         /* keep looping */
@@ -128,7 +132,7 @@ export default function CameraView({ onClose }) {
             className="pointer-events-none absolute inset-x-0 h-28 bg-gradient-to-b from-transparent via-clay/10 to-transparent"
           />
 
-          {(loading || error) && (
+          {(loading || (error && !ready)) && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink/80 text-center">
               {loading && !error ? (
                 <>

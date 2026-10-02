@@ -24,6 +24,7 @@ export function useCamera() {
         videoRef.current.srcObject = stream
         await videoRef.current.play()
         setReady(true)
+        setError(null) // clear any stale error
       }
     } catch (err) {
       setError(
