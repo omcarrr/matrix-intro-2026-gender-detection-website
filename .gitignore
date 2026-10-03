@@ -9,9 +9,9 @@ dist/
 *.db
 *.db-journal
 
-# Reference photos used for the hardcoded demo presets. These are personal club
-# photos and must never be committed or deployed.
-temp/
+# NOTE: temp/ is intentionally NOT ignored. It holds the reference photos used to
+# compute the perceptual hashes in frontend/src/lib/presets.js. The site never
+# loads them at runtime; they are kept for reference and reproducibility.
 
 # Environment — keep real secrets out, but the checked-in defaults are safe to
 # share (they only ever hold a localhost URL or a public endpoint).
