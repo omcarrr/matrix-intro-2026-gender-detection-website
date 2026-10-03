@@ -83,6 +83,19 @@ export default function UploadDrop({ onClose, onLogged }) {
 
   const hasImage = Boolean(img?.naturalWidth)
 
+  // A preset reading is already known, so there is no reason to block on the detector
+  // just to place the box. Paint it straight away, then quietly swap in a real
+  // detected face box once the model has loaded.
+  const refinePresetBox = async (preset, generation) => {
+    try {
+      const detected = await analyzeImage(img)
+      if (generation !== generationRef.current) return
+      setFaces((prev) => (prev?.[0]?.preset ? presetFaces(preset, img, detected) : prev))
+    } catch {
+      /* the centred fallback box is good enough */
+    }
+  }
+
   const analyze = async () => {
     if (!hasImage) return
     // Tag this run so a result that lands after Clear is dropped instead of
@@ -93,20 +106,17 @@ export default function UploadDrop({ onClose, onLogged }) {
     setError(null)
     try {
       const preset = matchPreset(img, fileNameRef.current)
-      let result
+
       if (preset) {
-        // Known demo photo: return the fixed reading. Still run the detector so the
-        // overlay box can sit on a real face; a failure here is not fatal.
-        let detected = []
-        try {
-          detected = await analyzeImage(img)
-        } catch {
-          /* keep the preset reading even if the model is unavailable */
-        }
-        result = presetFaces(preset, img, detected)
-      } else {
-        result = await analyzeImage(img)
+        const result = presetFaces(preset, img, [])
+        setFaces(result)
+        await logSession({ mode: 'upload', faceCount: result.length, results: result })
+        onLogged?.()
+        refinePresetBox(preset, generation) // not awaited: the answer is already up
+        return
       }
+
+      const result = await analyzeImage(img)
       if (generation !== generationRef.current) return
       setFaces(result)
       await logSession({ mode: 'upload', faceCount: result.length, results: result })

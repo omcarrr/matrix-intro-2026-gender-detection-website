@@ -25,9 +25,11 @@ export async function initModels() {
       } catch {
         await tf.setBackend('cpu')
       }
+      // faceLandmark68Net is deliberately not loaded. Nothing downstream reads
+      // landmark positions, and pulling it in costs an extra ~350 KB download plus a
+      // full forward pass for every face in every frame.
       await Promise.all([
         faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
         faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL),
       ])
       status = 'ready'
@@ -82,9 +84,10 @@ async function detectCanvas(canvas, scale = 1) {
     minConfidence: 0.5,
     maxResults: 20,
   })
+  // No .withFaceLandmarks() here: age/gender runs off the detection box directly,
+  // so asking for landmarks would only add work we throw away.
   const results = await faceapi
     .detectAllFaces(canvas, opts)
-    .withFaceLandmarks()
     .withAgeAndGender()
   return normalise(results, scale)
 }
